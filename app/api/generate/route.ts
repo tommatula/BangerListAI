@@ -121,7 +121,7 @@ Return a JSON array with this exact structure for each activity:
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Error:', error);
 
     // Handle different error types
