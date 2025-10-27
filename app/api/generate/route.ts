@@ -141,37 +141,51 @@ Return a JSON array with this exact structure for each activity:
       }
     });
 
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('API Error:', error);
 
-    // Handle different error types
-    if (error.code === 'insufficient_quota') {
+    if (error instanceof Error) {
+      const apiError = error as Error & { code?: string };
+
+      if (apiError.code === 'insufficient_quota') {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'OpenAI API quota exceeded. Please check your billing.',
+          },
+          { status: 429 }
+        );
+      }
+
+      if (apiError.code === 'invalid_api_key') {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Invalid OpenAI API key. Please check your configuration.',
+          },
+          { status: 401 }
+        );
+      }
+
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'OpenAI API quota exceeded. Please check your billing.' 
+        {
+          success: false,
+          error:
+            apiError.message ||
+            'Failed to generate variations. Please try again.',
         },
-        { status: 429 }
+        { status: 500 }
       );
     }
 
-    if (error.code === 'invalid_api_key') {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid OpenAI API key. Please check your configuration.' 
-        },
-        { status: 401 }
-      );
-    }
-
-    // Generic error
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'Failed to generate variations. Please try again.' 
+      {
+        success: false,
+        error: 'An unexpected error occurred.',
       },
       { status: 500 }
     );
   }
+
+
 }
