@@ -35,21 +35,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the prompt for ChatGPT
-    const systemPrompt = `You are an expert college admissions essay coach. Your task is to rewrite student activity descriptions for college applications in three distinct voices:
+    const systemPrompt = `You are BangerListAI — an AI trained to create creative, descriptive, and interesting college application activity descriptions.
 
-1. Professional: Clear, achievement-focused, emphasizes measurable results. Uses strong action verbs. Formal tone.
-2. Banger 1: Fun, quirky and engaging. Makes admissions officers take note. Shows passion and personality. Slightly informal but appropriate.
-3. Banger 2: Another great alternative with strong narrative and storytelling. Personal and memorable.
+Your task is to rewrite student activity descriptions in three distinct styles:
 
-CRITICAL REQUIREMENTS:
-- Common App descriptions must be ≤150 characters
-- UC Application descriptions must be ≤350 characters
-- Common App Organization Name must be ≤100 characters
-- Common App Position/Leadership must be ≤50 characters
-- UC Activity Name must be ≤60 characters
-- Stay truthful to the original description
-- Use varied vocabulary across all three variations
-- Each variation must be distinctly different in style
+1. Professional: Clean, concise, achievement-focused. Emphasizes measurable results and leadership. Formal and polished.
+
+2. Spicy Version A: Playful, descriptive, and interesting. Shows personality while staying appropriate. Makes admissions officers actually want to read it.
+
+3. Spicy Version B: Quirky, bold, personality-rich. Tells a story. Memorable and authentic. Still appropriate for college apps.
+
+CRITICAL CHARACTER LIMITS:
+- Common App Activity Description: ≤150 characters (strict)
+- Common App Organization Name: ≤100 characters
+- Common App Position/Leadership: ≤50 characters
+- UC Application Activity Description: ≤350 characters (strict)
+- UC Application Activity Name: ≤60 characters
+
+IMPORTANT RULES:
+- Stay truthful to the original description - no fabrication
+- Use varied vocabulary across all three versions
+- Each version must feel distinctly different
+- UC versions should be more detailed since they have more space
+- Common App versions must be punchy and concise
 
 You must respond with valid JSON only, no other text.`;
 
@@ -72,16 +80,16 @@ Return a JSON array with this exact structure for each activity:
         "position": "string (≤50 chars)",
         "variations": [
           { "voice": "Professional", "text": "string (≤150 chars)" },
-          { "voice": "Banger 1", "text": "string (≤150 chars)" },
-          { "voice": "Banger 2", "text": "string (≤150 chars)" }
+          { "voice": "Spicy Version A", "text": "string (≤150 chars)" },
+          { "voice": "Spicy Version B", "text": "string (≤150 chars)" }
         ]
       },
       "uc": {
         "activityName": "string (≤60 chars)",
         "variations": [
           { "voice": "Professional", "text": "string (≤350 chars)" },
-          { "voice": "Banger 1", "text": "string (≤350 chars)" },
-          { "voice": "Banger 2", "text": "string (≤350 chars)" }
+          { "voice": "Spicy Version A", "text": "string (≤350 chars)" },
+          { "voice": "Spicy Version B", "text": "string (≤350 chars)" }
         ]
       }
     }
@@ -103,13 +111,22 @@ Return a JSON array with this exact structure for each activity:
 
     // Parse response
     const responseText = completion.choices[0].message.content;
-    console.log('OpenAI Response:', responseText);
+    console.log('=== RAW OpenAI Response ===');
+    console.log(responseText);
+    console.log('=== End Response ===');
     
     if (!responseText) {
       throw new Error('No response from OpenAI');
     }
 
-    const parsedResponse = JSON.parse(responseText);
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
+      console.error('Failed to parse:', responseText);
+      throw new Error('OpenAI returned invalid JSON format');
+    }
 
     // Return successful response
     return NextResponse.json({
@@ -121,13 +138,11 @@ Return a JSON array with this exact structure for each activity:
       }
     });
 
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('API Error:', error);
 
-    const err = error as { code?: string; message?: string };
-
     // Handle different error types
-    if (err.code === 'insufficient_quota') {
+    if (error.code === 'insufficient_quota') {
       return NextResponse.json(
         { 
           success: false, 
@@ -137,7 +152,7 @@ Return a JSON array with this exact structure for each activity:
       );
     }
 
-    if (err.code === 'invalid_api_key') {
+    if (error.code === 'invalid_api_key') {
       return NextResponse.json(
         { 
           success: false, 
@@ -151,7 +166,7 @@ Return a JSON array with this exact structure for each activity:
     return NextResponse.json(
       { 
         success: false, 
-        error: err.message || 'Failed to generate variations. Please try again.' 
+        error: error.message || 'Failed to generate variations. Please try again.' 
       },
       { status: 500 }
     );
