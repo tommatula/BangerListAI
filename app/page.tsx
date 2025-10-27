@@ -11,6 +11,7 @@ export default function BangerListAI() {
   const [charLimit, setCharLimit] = useState(150);
   const [activities, setActivities] = useState([]);
   const [currentActivityIndex, setCurrentActivityIndex] = useState(null);
+  const [variations, setVariations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
 
@@ -18,23 +19,69 @@ export default function BangerListAI() {
     {
       id: 'professional',
       label: 'Professional',
-      description: 'Clear, achievement-focused, emphasizes results',
+      description: 'Clean, concise, achievement-focused',
       color: 'border-blue-500'
     },
     {
-      id: 'banger1',
-      label: 'Banger 1',
-      description: 'Fun, quirky and engaging descriptions of your activities that will make admissions officers take note',
+      id: 'spicyA',
+      label: 'Spicy Version A',
+      description: 'Playful and descriptive—makes admissions officers actually want to read it',
       color: 'border-purple-500'
     },
     {
-      id: 'banger2',
-      label: 'Banger 2',
-      description: 'Another great banger alternative',
+      id: 'spicyB',
+      label: 'Spicy Version B',
+      description: 'Quirky, bold, and memorable—shows your authentic personality',
       color: 'border-green-500'
     }
   ];
 
+  const generateMockVariations = (activity) => {
+    // Generate variations for both Common App and UC
+    return {
+      commonApp: {
+        organizationName: activity.name.slice(0, 100), // 100 char limit
+        position: (activity.participationLevel || 'Member').slice(0, 50), // 50 char limit
+        variations: [
+          {
+            voice: 'Professional',
+            text: `Led ${activity.name} initiative, coordinating team efforts and implementing strategies that increased engagement by 45%.`,
+            color: 'border-blue-500'
+          },
+          {
+            voice: 'Banger 1',
+            text: `Captain of ${activity.name}. Turned chaos into championships while mentoring teammates and crushing goals—6 AM practices included.`,
+            color: 'border-purple-500'
+          },
+          {
+            voice: 'Banger 2',
+            text: `Joined ${activity.name} and discovered my superpower: transforming nervous freshmen into confident competitors through leadership.`,
+            color: 'border-green-500'
+          }
+        ]
+      },
+      uc: {
+        activityName: activity.name.slice(0, 60), // 60 char limit
+        variations: [
+          {
+            voice: 'Professional',
+            text: `As ${activity.participationLevel || 'member'} of ${activity.name}, led cross-functional team coordination and implemented data-driven strategies that increased member engagement by 45% and achieved regional recognition. Dedicated ${activity.hoursPerWeek || 10} hours weekly to organizing practice sessions, mentoring new members, and developing comprehensive training materials that improved team performance metrics.`,
+            color: 'border-blue-500'
+          },
+          {
+            voice: 'Banger 1',
+            text: `Picture this: me, ${activity.participationLevel || 'member'} of ${activity.name}, turning complete chaos into actual championships. Spent ${activity.hoursPerWeek || 10} hours weekly mentoring 15 teammates, crushing every goal we set, and somehow making 6 AM practices actually fun (yes, really). Led training sessions that boosted our win rate by 40% while keeping the vibe immaculate and the team motivated through every challenge.`,
+            color: 'border-purple-500'
+          },
+          {
+            voice: 'Banger 2',
+            text: `When I first walked into ${activity.name} as ${activity.participationLevel || 'a member'}, I never imagined I'd discover my true superpower: transforming nervous freshmen into confident competitors. Over ${activity.hoursPerWeek || 10} hours each week, I built a mentorship program from scratch, developed custom training materials, and watched our scrappiest-team-that-could evolve into regional champions through dedication and authentic leadership.`,
+            color: 'border-green-500'
+          }
+        ]
+      }
+    };
+  };
 
   const handleAddActivity = () => {
     if (!activityName.trim() || description.length < 50) {
@@ -103,9 +150,9 @@ export default function BangerListAI() {
       setTimeout(() => {
         document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error: unknown) {
+    } catch (error: any) {
       setLoading(false);
-      alert(`Error: ${error instanceof Error ? error.message : 'Failed to generate variations. Please try again.'}`);
+      alert(`Error: ${error.message || 'Failed to generate variations. Please try again.'}`);
       console.error('Generation error:', error);
     }
   };
