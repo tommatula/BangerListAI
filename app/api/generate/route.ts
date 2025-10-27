@@ -124,8 +124,10 @@ Return a JSON array with this exact structure for each activity:
   } catch (error: unknown) {
     console.error('API Error:', error);
 
+    const err = error as { code?: string; message?: string };
+
     // Handle different error types
-    if (error.code === 'insufficient_quota') {
+    if (err.code === 'insufficient_quota') {
       return NextResponse.json(
         { 
           success: false, 
@@ -135,7 +137,7 @@ Return a JSON array with this exact structure for each activity:
       );
     }
 
-    if (error.code === 'invalid_api_key') {
+    if (err.code === 'invalid_api_key') {
       return NextResponse.json(
         { 
           success: false, 
@@ -149,7 +151,7 @@ Return a JSON array with this exact structure for each activity:
     return NextResponse.json(
       { 
         success: false, 
-        error: error.message || 'Failed to generate variations. Please try again.' 
+        error: err.message || 'Failed to generate variations. Please try again.' 
       },
       { status: 500 }
     );
