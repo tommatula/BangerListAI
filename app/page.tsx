@@ -150,7 +150,7 @@ export default function BangerListAI() {
       setTimeout(() => {
         document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setLoading(false);
       alert(`Error: ${error.message || 'Failed to generate variations. Please try again.'}`);
       console.error('Generation error:', error);
